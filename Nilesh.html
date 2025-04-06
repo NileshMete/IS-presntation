@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MD5 vs SHA-512: Cryptographic Hash Functions Explained</title>
+    <style>
+        :root {
+            --primary-color: #4fc3f7;
+            --secondary-color: #9575cd;
+            --accent-color: #4db6ac;
+            --dark-bg: #121212;
+            --slide-bg: rgba(20, 25, 35, 0.9);
+            --text-light: #f5f5f5;
+            --text-muted: #b0bec5;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .presentation {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e, #9c27b0, #e040fb, #ff80ab, #ffab40);
+            background-size: 600% 600%;
+            animation: moveGradient 25s ease infinite;
+        }
+
+        @keyframes moveGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .shooting-star {
+            position: absolute;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, white);
+            animation: shoot 2s linear;
+        }
+
+        @keyframes shoot {
+            from {
+                transform: translate(0, 0);
+            }
+
+            to {
+                transform: translate(100vw, 100vh);
+            }
+        }
+
+
+        #starfield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.7);
+            animation: twinkle 5s infinite ease-in-out;
+            opacity: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .star:hover {
+            transform: scale(3);
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .slide {
+            position: absolute;
+            width: 90%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 90vh;
+            padding: 40px 50px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            background: var(--slide-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 1;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            display: none;
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: rgba(79, 195, 247, 0.5);
+            border-radius: 4px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .slide.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            color: var(--primary-color);
+            text-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 3px;
+        }
+
+        h2 {
+            font-size: clamp(1.4rem, 3vw, 1.8rem);
+            color: var(--accent-color);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            text-align: left;
+            font-weight: 500;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 4px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        p,
+        li {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            line-height: 1.8;
+            color: var(--text-light);
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        p.center-text {
+            text-align: center;
+        }
+
+        p.note {
+            background: rgba(255, 235, 59, 0.15);
+            border-left: 4px solid #ffeb3b;
+            padding: 12px 15px;
+            border-radius: 0 4px 4px 0;
+            color: #fff;
+        }
+
+        ul {
+            list-style-type: none;
+            margin-left: 5px;
+            padding-left: 20px;
+        }
+
+        li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 12px;
+        }
+
+        li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-size: 1.5em;
+            line-height: 0.8;
+        }
+
+        img {
+            display: block;
+            margin: 30px auto;
+            max-width: 80%;
+            height: auto;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            object-fit: contain;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        img:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        table {
+            width: 100%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            background-color: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        th,
+        td {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 14px 12px;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(79, 195, 247, 0.4), rgba(149, 117, 205, 0.4));
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9em;
+        }
+
+        td {
+            background-color: transparent;
+            color: var(--text-light);
+        }
+
+        td:first-child {
+            font-weight: 500;
+            color: var(--primary-color);
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        tr:nth-child(even) td {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        code {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.95em;
+            word-break: break-word;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #f5f5f5;
+            display: inline-block;
+            margin: 5px 0;
+        }
+
+        .code-block {
+            display: block;
+            padding: 15px;
+            margin: 20px 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            z-index: 10;
+        }
+
+        .nav-hint {
+            display: none;
+            position: fixed;
+            bottom: 15px;
+            left: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-hint span {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                width: 90%;
+                padding: 20px 25px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            img {
+                max-width: 90%;
+            }
+
+            .nav-hint {
+                display: none;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="presentation">
+        <div id="starfield"></div>
+
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <div class="slide-counter" id="slide-counter"></div>
+        <div class="nav-hint">
+            <span>←</span> Navigate <span>→</span>
+            <span onclick="scrollToElement('title')">Title</span>
+            <span onclick="scrollToElement('crypto-hash')">Crypto Hash</span>
+            <span onclick="scrollToElement('properties')">Properties</span>
+            <span onclick="scrollToElement('applications')">Applications</span>
+            <span onclick="scrollToElement('md5-algorithm')">MD5 Algorithm</span>
+            <span onclick="scrollToElement('md5-example')">MD5 Example</span>
+            <span onclick="scrollToElement('md5-vulnerabilities')">MD5 Issues</span>
+            <span onclick="scrollToElement('sha512-algorithm')">SHA-512</span>
+            <span onclick="scrollToElement('sha512-example')">SHA-512 Example</span>
+            <span onclick="scrollToElement('comparison')">Comparison</span>
+            <span onclick="scrollToElement('best-practices')">Best Practices</span>
+        </div>
+
+        <!-- All your slide content remains exactly the same -->
+        <div class="slide active">
+            <h1 id="title">MD5 vs SHA-512</h1>
+            <p class="center-text">A Comprehensive Comparison of Cryptographic Hash Functions</p>
+            <div style="text-align: center; margin: 15px 0; font-size: 1.4rem; color: #4db6ac; font-weight: 500;">
+                Presented by <span style="color: #9575cd; text-shadow: 0 0 8px rgba(149, 117, 205, 0.4);">Nilesh Mete</span>
+            </div>
+            <img src="https://cheapsslweb.com/blog/wp-content/uploads/2022/12/hash-function-in-cryptography-768x497.jpg"
+                alt="Abstract network security graphic">
+            <div class="code-block">
+                // Example hash function usage<br>
+                const hash = crypto.createHash('sha512');<br>
+                hash.update('secure data');<br>
+                const digest = hash.digest('hex');
+            </div>
+        </div>
+        <div class="slide">
+            <h1 id="crypto-hash">What is a Cryptographic Hash Function?</h1>
+            <p>A cryptographic hash function is a mathematical algorithm that transforms arbitrary data into a
+                fixed-size string of characters, designed to be a one-way function.</p>
+
+            <h2 id="properties">Essential Properties</h2>
+            <ul>
+                <li><strong>Deterministic:</strong> Identical inputs always produce identical outputs</li>
+                <li><strong>Fixed Output Size:</strong> 128-bit for MD5, 512-bit for SHA-512</li>
+                <li><strong>Efficient Computation:</strong> Fast calculation for any input size</li>
+                <li><strong>Pre-image Resistance:</strong> Extremely difficult to reverse the hash</li>
+                <li><strong>Small Changes, Big Differences:</strong> Minor input changes completely alter the output
+                    (avalanche effect)</li>
+                <li><strong>Collision Resistance:</strong> Hard to find two inputs with identical outputs</li>
+            </ul>
+
+            <img src="https://miro.medium.com/v2/resize:fit:1199/1*m5hHny_ld5vmLy4Ip_7pEA.png"
+                alt="Diagram showing input data going into a hash function">
+        </div>
+
+        <!-- [All other slides remain exactly the same] -->
+        <div class="slide">
+            <h1 id="applications">Practical Applications of Hash Functions</h1>
+            <p>Hash functions serve as fundamental components in modern computing and security systems:</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 25px 0;">
+                <div
+                    style="background: rgba(79, 195, 247, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                    <h3 style="margin-top: 0; color: var(--primary-color);">Security Applications</h3>
+                    <ul style="padding-left: 15px;">
+                        <li>Password storage</li>
+                        <li>Digital signatures</li>
+                        <li>SSL/TLS certificates</li>
+                        <li>File integrity verification</li>
+                    </ul>
+                </div>
+
+                <div
+                    style="background: rgba(149, 117, 205, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--secondary-color);">
+                    <h3 style="margin-top: 0; color: var(--secondary-color);">Other Applications</h3>
+                    <ul style="padding-left: 15px;">
+                        <li>Data deduplication</li>
+                        <li>Hash tables</li>
+                        <li>Blockchain technology</li>
+                        <li>Content addressing</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="note">  
+                <strong>Important:</strong> For storing passwords, never use raw SHA-512 or MD5!  
+                Instead, use specialized <strong>password-hashing algorithms</strong> like:  
+                <br>  
+                ✅ <strong>Argon2</strong> (modern winner of the Password Hashing Competition)  
+                <br>  
+                ✅ <strong>bcrypt</strong> (slower by design to resist brute force)  
+                <br>  
+                ✅ <strong>PBKDF2</strong> (with many iterations)  
+                <br>  
+                These add <strong>salt</strong> (randomness) and make attacks much harder.  
+            </p>  
+
+            <img src="https://images.unsplash.com/photo-1605647540924-852290f6b0d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                alt="Padlock symbolising security">
+        </div>
+
+        <div class="slide">
+            <h1 id="md5-algorithm">MD5: Message Digest Algorithm</h1>
+            <p>Developed in 1991 by Ronald Rivest as a cryptographic hash function with a 128-bit hash value.</p>
+
+            <h2>Technical Specifications</h2>
+            <table>
+                <tr>
+                    <td>Output Size</td>
+                    <td>128 bits (32 hex characters)</td>
+                </tr>
+                <tr>
+                    <td>Block Size</td>
+                    <td>512 bits</td>
+                </tr>
+                <tr>
+                    <td>Rounds</td>
+                    <td>64 (4 rounds of 16 operations)</td>
+                </tr>
+                <tr>
+                    <td>Speed</td>
+                    <td>Fast computation (~700MB/s on modern hardware)</td>
+                </tr>
+            </table>
+
+            <h2 id="usage">Historical Usage</h2>
+            <ul>
+                <li>Widely used for file integrity checks</li>
+                <li>Previously used in password storage</li>
+                <li>SSL/TLS certificate signatures</li>
+                <li>Checksums in software distribution</li>
+            </ul>
+
+            <img src="https://codesigningstore.com/wp-content/uploads/2023/02/how-the-md5-hashing-algorithm-works.png"
+                alt="Algorithm flowchart">
+        </div>
+
+        <div class="slide">
+            <h1 id="md5-example">MD5 Example & Characteristics</h1>
+
+            <div class="code-block">
+                // MD5 Hash Example<br>
+                Input: "Hello, World!"<br>
+                MD5: 65a8e27d8879283831b664bd8b7f0ad4<br><br>
+
+                Input: "hello, world!" (lowercase 'h')<br>
+                MD5: 6cd3556deb0da54bca060b4c39479839
+            </div>
+
+            <h2>Key Observations</h2>
+            <ul>
+                <li>Fixed 32-character hexadecimal output</li>
+                <li>Completely different outputs from similar inputs</li>
+                <li>No visible pattern in hash results</li>
+                <li>Fast computation even for large inputs</li>
+            </ul>
+
+            <img src="https://1.bp.blogspot.com/-5KFn3QF2WuQ/XO7M0anutfI/AAAAAAAAAJs/bwFfFsogpf087rJhNKUc8umBpydh5ATCACLcBGAs/s640/security-md5_hashing_mobile.jpg"
+                alt="Computer screen showing code">
+        </div>
+
+        <div class="slide">
+            <h1 id="md5-vulnerabilities">MD5 Security Vulnerabilities</h1>
+            <p>MD5 has been compromised by several practical attacks:</p>
+
+            <h2>Documented Attacks</h2>
+            <ul>
+                <li><strong>Collision Attacks (2004):</strong> First practical collision demonstrated</li>
+                <li><strong>Chosen-prefix Collisions (2009):</strong> Ability to create two different files with same
+                    MD5</li>
+                <li><strong>Rainbow Tables:</strong> Precomputed tables for reversing hashes</li>
+                <li><strong>GPU Acceleration:</strong> Billions of hashes per second possible</li>
+            </ul>
+
+            <h2>Real-world Exploits</h2>
+            <ul>
+                <li>Flame malware spoofed Microsoft digital signatures</li>
+                <li>Rogue SSL certificates creation</li>
+                <li>Password database breaches</li>
+            </ul>
+
+            <div class="note">
+                <strong>Current Status:</strong> MD5 is considered cryptographically broken and unsuitable for security
+                purposes. NIST deprecated its use in 2010.
+            </div>
+
+            <img src="https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
+                alt="Broken lock indicating security risk">
+        </div>
+
+        <div class="slide">
+            <h1 id="sha512-algorithm">SHA-512: Secure Hash Algorithm</h1>
+            <p>Part of the SHA-2 family developed by the NSA, published in 2001 as a successor to SHA-1.</p>
+
+            <h2>Technical Specifications</h2>
+            <table>
+                <tr>
+                    <td>Output Size</td>
+                    <td>512 bits (128 hex characters)</td>
+                </tr>
+                <tr>
+                    <td>Block Size</td>
+                    <td>1024 bits</td>
+                </tr>
+                <tr>
+                    <td>Rounds</td>
+                    <td>80</td>
+                </tr>
+                <tr>
+                    <td>Security</td>
+                    <td>256-bit security against collisions</td>
+                </tr>
+                <tr>
+                    <td>Speed</td>
+                    <td>~150MB/s on modern hardware</td>
+                </tr>
+            </table>
+
+            <h2>Design Improvements</h2>
+            <ul>
+                <li>Larger internal state (eight 64-bit words)</li>
+                <li>More complex compression function</li>
+                <li>Better diffusion of input changes</li>
+                <li>Higher resistance to length extension attacks</li>
+            </ul>
+
+            <img src="https://www.researchgate.net/profile/Mohammad_Anwar_Hossain/publication/336774155/figure/download/fig2/AS:817538371973120@1571927745047/Message-digest-generation-using-SHA-512-message-digest-generation-using-SHA-512-Google.png"
+                alt="Secure algorithm graphic">
+        </div>
+
+        <div class="slide">
+            <h1 id="sha512-example">SHA-512 Example & Characteristics</h1>
+
+            <div class="code-block">
+                // SHA-512 Hash Example<br>
+                Input: "Hello, World!"<br>
+                SHA-512:
+                315f5bdb76d078c43b8ac0064e4a0164612b1fce21f515b6c557a15b28b19848d0a84e465398f14110881443087bf5191b4d93e95364e57d349b34f1174e3046<br><br>
+
+                Input: "hello, world!" (lowercase 'h')<br>
+                SHA-512:
+                4ae81572f06e1b88fd5ced7a1a000945432e83e1551e6f721ee9c00b8cc3326084eebf578f9dc3bdd6d2d7b9d6a6c0c7e1e4f8e1b5d7d3a6c0c7e1e4f8e1b5d7
+            </div>
+
+            <h2>Key Advantages</h2>
+            <ul>
+                <li>Larger output size provides more security margin</li>
+                <li>Better resistance to cryptanalytic attacks</li>
+                <li>Slower computation makes brute force harder</li>
+                <li>Part of NIST-approved standard (FIPS 180-4)</li>
+            </ul>
+
+            <img src="https://images.pexels.com/photos/270348/pexels-photo-270348.jpeg?auto=compress&cs=tinysrgb&w=800"
+                alt="Programming code">
+        </div>
+
+        <div class="slide">
+            <h1 id="comparison">MD5 vs SHA-512: Detailed Comparison</h1>
+
+            <table style="min-height: 300px;">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>MD5</th>
+                        <th>SHA-512</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Output Size</td>
+                        <td>128 bits</td>
+                        <td>512 bits</td>
+                    </tr>
+                    <tr>
+                        <td>Internal State</td>
+                        <td>128 bits</td>
+                        <td>512 bits</td>
+                    </tr>
+                    <tr>
+                        <td>Block Size</td>
+                        <td>512 bits</td>
+                        <td>1024 bits</td>
+                    </tr>
+                    <tr>
+                        <td>Rounds</td>
+                        <td>64</td>
+                        <td>80</td>
+                    </tr>
+                    <tr>
+                        <td>Collision Resistance</td>
+                        <td>Broken (2<sup>20</sup> complexity)</td>
+                        <td>Secure (2<sup>256</sup> complexity)</td>
+                    </tr>
+                    <tr>
+                        <td>Pre-image Resistance</td>
+                        <td>Weakened</td>
+                        <td>Secure (2<sup>512</sup> complexity)</td>
+                    </tr>
+                    <tr>
+                        <td>Performance</td>
+                        <td>~700MB/s</td>
+                        <td>~150MB/s</td>
+                    </tr>
+                    <tr>
+                        <td>Security Status</td>
+                        <td>Deprecated</td>
+                        <td>Recommended</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 25px; display: flex; gap: 20px; min-height: 200px; flex-wrap: wrap;">
+                <div
+                    style="flex: 1; min-width: 300px; overflow: auto; background: rgba(244, 67, 54, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #f44336;">
+                    <h3 style="margin-top: 0; color: #f44336;">MD5 Weaknesses</h3>
+                    <ul>
+                        <li>Vulnerable to collision attacks</li>
+                        <li>Small output size</li>
+                        <li>No longer considered secure</li>
+                    </ul>
+                </div>
+
+                <div
+                    style="flex: 1; min-width: 300px; overflow: auto; background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                    <h3 style="margin-top: 0; color: #4caf50;">SHA-512 Strengths</h3>
+                    <ul>
+                        <li>Larger security margin</li>
+                        <li>Resistant to known attacks</li>
+                        <li>NIST-approved standard</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="slide">
+            <h1 id="best-practices">Best Practices & Recommendations</h1>
+
+            <h2>When to Use SHA-512</h2>
+            <ul>
+                <li>File integrity verification</li>
+                <li>Digital signatures</li>
+                <li>HMAC constructions</li>
+                <li>As part of PBKDF2 for password hashing</li>
+            </ul>
+
+            <h2>Security Considerations</h2>
+            <ul>
+                <li>Always prefer SHA-2 or SHA-3 over MD5</li>
+                <li>For passwords, use specialized algorithms (Argon2, bcrypt, PBKDF2)</li>
+                <li>Consider SHA-256 if output size is a concern (still secure)</li>
+                <li>Monitor for new cryptographic developments</li>
+            </ul>
+
+          
+            <img src="https://images.unsplash.com/photo-1584824486509-112e4181ff6b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                alt="Security approval">
+
+            <p class="center-text" style="margin-top: 20px; font-size: 1.1rem;">
+                Security is a process, not a product. Always stay informed about the latest cryptographic standards.
+            </p>
+        </div>
+
+
+
+    </div>
+
+
+
+
+
+
+    <script>
+        
+        // Enhanced Starfield with interactivity
+        const starfield = document.getElementById('starfield');
+        const numberOfStars = Math.floor(window.innerWidth * window.innerHeight / 1000); 
+// More stars on bigger screens
+        // const numberOfStars = 200; for 200 stars on all screens
+
+        
+        for (let i = 0; i < numberOfStars; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+
+            // Random size between 1px and 3px with some larger stars
+            const size = Math.random() > 0.9 ? Math.random() * 3 + 2 : Math.random() * 2 + 1;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+
+            // Position stars randomly but avoid center area
+            let top, left;
+            if (Math.random() > 0.5) {
+                top = Math.random() * 40;
+                left = Math.random() * 100;
+            } else {
+                top = Math.random() * 100;
+                left = Math.random() * 40;
+            }
+            if (Math.random() > 0.5) top = 60 + Math.random() * 40;
+            if (Math.random() > 0.5) left = 60 + Math.random() * 40;
+
+            star.style.top = `${top}%`;
+            star.style.left = `${left}%`;
+
+            // Random animation delay and duration
+            const delay = Math.random() * 5;
+            const duration = 3 + Math.random() * 4;
+            star.style.animationDelay = `${delay}s`;
+            star.style.animationDuration = `${duration}s`;
+            const hues = [0, 60, 180, 240]; // Red, Yellow, Cyan, Blue
+            star.style.backgroundColor = `hsla(${hues[Math.floor(Math.random() * hues.length)]}, 100%, 80%, 0.8)`;
+            // Add slight color variation
+            if (Math.random() > 0.7) {
+                star.style.backgroundColor = `rgba(179, 229, 252, ${Math.random() * 0.5 + 0.5})`;
+            }
+
+            starfield.appendChild(star);
+        }
+
+        // Make stars twinkle on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                const starRect = star.getBoundingClientRect();
+                const distance = Math.sqrt(
+                    Math.pow(e.clientX - (starRect.left + starRect.width / 2), 2) +
+                    Math.pow(e.clientY - (starRect.top + starRect.height / 2), 2)
+                );
+
+                if (distance < 150) {
+                    star.style.transform = `scale(${1.5 + (150 - distance) / 150 * 2})`;
+                    star.style.opacity = 1;
+                }
+            });
+        });
+
+        // Smooth scroll to element within slide
+        function scrollToElement(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const slide = element.closest('.slide');
+                if (slide) {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const slideTop = slide.getBoundingClientRect().top;
+                    const scrollPosition = elementTop - slideTop + slide.scrollTop;
+
+                    slide.scrollTo({
+                        top: scrollPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }
+
+        // Slide Navigation with Progress Tracking
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressBar = document.getElementById('progress');
+        const slideCounter = document.getElementById('slide-counter');
+
+        // Initialize first slide
+        slides[0].classList.add('active');
+        slides[0].style.display = 'block';
+        updateProgress();
+
+        function updateProgress() {
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+            slideCounter.textContent = `${currentSlide + 1}/${totalSlides}`;
+        }
+        function createShootingStar() {
+  const shooter = document.createElement('div');
+  shooter.className = 'shooting-star';
+  starfield.appendChild(shooter);
+  setTimeout(() => shooter.remove(), 2000);
+}
+setInterval(createShootingStar, 3000); // Every 3 seconds
+
+
+        function navigateSlides(direction) {
+            // Hide current slide completely
+            slides[currentSlide].classList.remove('active');
+            slides[currentSlide].style.display = 'none';
+
+            if (direction === 'next') {
+                currentSlide = (currentSlide + 1) % totalSlides;
+            } else if (direction === 'prev') {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            }
+
+            // Show new slide properly
+            slides[currentSlide].style.display = 'block';
+            slides[currentSlide].classList.add('active');
+            slides[currentSlide].scrollTop = 0;
+            updateProgress();
+        }
+
+        // Click navigation
+        document.body.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+
+            const clickX = e.clientX;
+            const screenWidth = window.innerWidth;
+
+            if (clickX > screenWidth / 2) {
+                navigateSlides('next');
+            } else {
+                navigateSlides('prev');
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowRight':
+                case ' ':
+                case 'PageDown':
+                    navigateSlides('next');
+                    break;
+                case 'ArrowLeft':
+                case 'PageUp':
+                    navigateSlides('prev');
+                    break;
+                case 'Home':
+                    currentSlide = 0;
+                    navigateSlides('');
+                    break;
+                case 'End':
+                    currentSlide = totalSlides - 1;
+                    navigateSlides('');
+                    break;
+            }
+        });
+
+        // Touch swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                navigateSlides('next');
+            } else if (touchEndX > touchStartX + 50) {
+                navigateSlides('prev');
+            }
+        }
+
+        // Add slight parallax effect to stars on scroll
+        slides.forEach(slide => {
+            slide.addEventListener('scroll', () => {
+                const scrollPercent = slide.scrollTop / (slide.scrollHeight - slide.clientHeight);
+                starfield.style.transform = `translateY(${scrollPercent * 20}px)`;
+            });
+        });
+    </script>
+</body>
+
+</html>
